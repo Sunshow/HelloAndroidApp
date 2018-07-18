@@ -1,0 +1,14 @@
+.DS_Store/
+*.swp
+.idea/
+*.iws
+**/out/
+.idea_modules/
+*.iml
+target/
+.gradle
+**/build/
+.gradletasknamecache
+local.properties
+/captures
+.externalNativeBuild

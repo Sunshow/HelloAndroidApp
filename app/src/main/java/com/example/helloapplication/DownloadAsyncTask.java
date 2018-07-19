@@ -10,6 +10,16 @@ public class DownloadAsyncTask extends AsyncTask<String, Integer, String> {
 
     private final static String TAG = "DownloadAsyncTask";
 
+    private DownloadTaskListener mListener;
+
+    public DownloadAsyncTask() {
+
+    }
+
+    public DownloadAsyncTask(DownloadTaskListener listener) {
+        mListener = listener;
+    }
+
     @Override
     protected String doInBackground(String... params) {
         int progress = 0;
@@ -36,10 +46,19 @@ public class DownloadAsyncTask extends AsyncTask<String, Integer, String> {
     @Override
     protected void onPostExecute(String s) {
         super.onPostExecute(s);
+        if (mListener != null) {
+            mListener.onCompleted(s);
+        }
     }
 
     @Override
     protected void onProgressUpdate(Integer... values) {
         super.onProgressUpdate(values);
+    }
+
+    public interface DownloadTaskListener {
+
+        void onCompleted(String s);
+
     }
 }

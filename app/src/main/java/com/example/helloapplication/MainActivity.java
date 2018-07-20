@@ -60,7 +60,7 @@ public class MainActivity extends AppCompatActivity {
                 //testLifecycle();
                 //testSecondary();
                 //testSecondaryForResult();
-                //testStartFirstService();
+                testStartFirstService();
                 //testStopFirstService();
                 //testBindFirstService();
                 //testSendBroadcast(false);
@@ -70,6 +70,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        /*
         mHandler = new Handler() {
             @Override
             public void handleMessage(Message msg) {
@@ -80,8 +81,9 @@ public class MainActivity extends AppCompatActivity {
 
             }
         };
+        */
 
-        //mHandler = new TextInputCompletedHandler(button);
+        mHandler = new TextInputCompletedHandler(button);
 
         text = findViewById(R.id.et_text);
         text.addTextChangedListener(new TextWatcher() {
@@ -200,16 +202,16 @@ public class MainActivity extends AppCompatActivity {
         //asyncTask.execute("guys");
 
         DownloadAsyncTask asyncTask1 = new DownloadAsyncTask();
-        asyncTask1.execute("guys");
+        //asyncTask1.execute("guys");
         //asyncTask1.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, "guys");
 
-        Executor executor = new ThreadPoolExecutor(10,50,10,
-                TimeUnit.SECONDS,new LinkedBlockingDeque<Runnable>(100));
-        //asyncTask1.executeOnExecutor(executor, "guys");
+        Executor executor = new ThreadPoolExecutor(10,50,
+                10, TimeUnit.SECONDS, new LinkedBlockingDeque<Runnable>(100));
+        asyncTask1.executeOnExecutor(executor, "guys");
     }
 
     private void testUpdateUI_1() {
-        MyAsyncTask task = new MyAsyncTask();
+        MyAsyncTask task = new MyAsyncTask(button);
         task.execute("hi");
     }
 
@@ -223,16 +225,28 @@ public class MainActivity extends AppCompatActivity {
         asyncTask.execute("hi");
     }
 
-    class MyAsyncTask extends AsyncTask<String, Integer, String> {
+    static class MyAsyncTask extends AsyncTask<String, Integer, String> {
+
+        WeakReference<Button> buttonWeakReference;
+
+        MyAsyncTask(Button button) {
+            buttonWeakReference = new WeakReference<>(button);
+        }
+
         @Override
         protected String doInBackground(String... params) {
-            Log.e(TAG, "download completed");
+            Log.e(TAG, "downloading");
             return params[0];
         }
 
         @Override
         protected void onPostExecute(String s) {
-            button.setText("Completed");
+            Button button = buttonWeakReference.get();
+            if (button != null) {
+                button.setText("Completed");
+            } else {
+                Log.e(TAG, "Button has been destroyed.");
+            }
         }
     }
 

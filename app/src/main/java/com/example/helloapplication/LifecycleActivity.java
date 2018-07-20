@@ -8,12 +8,16 @@ public class LifecycleActivity extends AppCompatActivity {
 
     private final String TAG = "LifecycleTest";
 
+    private DownloadAsyncTask mAsyncTask;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_lifecycle);
 
         Log.e(TAG, "onCreate");
+
+        mAsyncTask = new DownloadAsyncTask();
     }
 
     @Override
@@ -32,6 +36,9 @@ public class LifecycleActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
         Log.e(TAG, "onDestroy");
+        if (mAsyncTask != null) {
+            mAsyncTask.cancel(true);
+        }
     }
 
     @Override
@@ -44,5 +51,12 @@ public class LifecycleActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         Log.e(TAG, "onResume");
+        //testDownloadAsyncTask();
+        mAsyncTask.execute("hi");
+    }
+
+    private void testDownloadAsyncTask() {
+        DownloadAsyncTask asyncTask = new DownloadAsyncTask();
+        asyncTask.execute("hi");
     }
 }

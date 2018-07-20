@@ -23,18 +23,22 @@ public class DownloadAsyncTask extends AsyncTask<String, Integer, String> {
     @Override
     protected String doInBackground(String... params) {
         int progress = 0;
-        for(int i = 0;i <= 10;i ++){
+        for(int i = 0;!isCancelled() && i <= 10;i ++){
             progress += 10;
             synchronized (this) {
                 try {
-                    wait(100);
+                    wait(1000);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
             }
             publishProgress(progress);
         }
-        Log.e(TAG, "download completed");
+        if (isCancelled()) {
+            Log.e(TAG, "downloading task cancelled");
+        } else {
+            Log.e(TAG, "download completed");
+        }
         return params[0];
     }
 
@@ -54,6 +58,9 @@ public class DownloadAsyncTask extends AsyncTask<String, Integer, String> {
     @Override
     protected void onProgressUpdate(Integer... values) {
         super.onProgressUpdate(values);
+        for (Integer value : values) {
+            Log.e(TAG, String.format("Current progress is %s", value));
+        }
     }
 
     public interface DownloadTaskListener {

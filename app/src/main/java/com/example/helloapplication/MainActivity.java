@@ -58,15 +58,24 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 //testTel();
                 //testLifecycle();
+                //testSensor();
                 //testSecondary();
                 //testSecondaryForResult();
-                testStartFirstService();
+                //testStartFirstService();
                 //testStopFirstService();
                 //testBindFirstService();
                 //testSendBroadcast(false);
                 //testDownloadAsyncTask();
                 //testUpdateUI_1();
                 //testUpdateUI_2();
+            }
+        });
+
+        Button btnTestSensor = findViewById(R.id.btn_test_sensor);
+        btnTestSensor.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                testSensor();
             }
         });
 
@@ -138,6 +147,10 @@ public class MainActivity extends AppCompatActivity {
 
     private void testLifecycle() {
         startActivity(new Intent(this, LifecycleActivity.class));
+    }
+
+    private void testSensor() {
+        startActivity(new Intent(this, SensorActivity.class));
     }
 
     private void testSecondary() {

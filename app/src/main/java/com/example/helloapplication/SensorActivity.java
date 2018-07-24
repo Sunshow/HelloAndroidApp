@@ -20,6 +20,8 @@ public class SensorActivity extends AppCompatActivity {
 
     private SensorEventListener mOrientationListener;
 
+    private SensorEventListener mAccelerometerListener;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -48,6 +50,14 @@ public class SensorActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 unregisterOrientationListener();
+            }
+        });
+
+        Button btnShake = findViewById(R.id.btn_shake);
+        btnShake.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                testShake();
             }
         });
     }
@@ -219,10 +229,59 @@ public class SensorActivity extends AppCompatActivity {
         }
     }
 
+    private void testShake() {
+        if (mSensorManager != null) {
+            unregisterAccelerometerListener();
+
+            mAccelerometerListener = new SensorEventListener() {
+
+                @Override
+                public void onSensorChanged(SensorEvent event) {
+                    int type = event.sensor.getType();
+
+                    if (type == Sensor.TYPE_ACCELEROMETER) {
+                        //获取三个方向值
+                        float[] values = event.values;
+                        float x = values[0];
+                        float y = values[1];
+                        float z = values[2];
+
+                        Log.e(TAG, String.format("%s, %s, %s", x, y, z));
+
+                        if ((Math.abs(x) > 17 || Math.abs(y) > 17 || Math
+                                .abs(z) > 17)) {
+                            Log.e(TAG, "监测到摇一摇");
+
+                            unregisterAccelerometerListener();
+                        }
+                    }
+                }
+
+                @Override
+                public void onAccuracyChanged(Sensor sensor, int accuracy) {
+
+                }
+            };
+
+            Sensor accelerometerSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+
+            mSensorManager.registerListener(mAccelerometerListener, accelerometerSensor, SensorManager.SENSOR_DELAY_GAME);
+        }
+    }
+
+    private void unregisterAccelerometerListener() {
+        if (mAccelerometerListener != null) {
+            mSensorManager.unregisterListener(mAccelerometerListener);
+            mAccelerometerListener = null;
+        }
+    }
+
     @Override
     protected void onDestroy() {
         super.onDestroy();
 
         unregisterOrientationListener();
+
+        unregisterAccelerometerListener();
     }
 }

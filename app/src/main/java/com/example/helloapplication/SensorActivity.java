@@ -25,6 +25,8 @@ public class SensorActivity extends AppCompatActivity {
 
     private SensorEventListener mStepCounterListener;
 
+    private SensorEventListener mGravityListener;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -71,6 +73,14 @@ public class SensorActivity extends AppCompatActivity {
                 testStepCounter();
             }
         });
+
+        Button btnGravity = findViewById(R.id.btn_gravity);
+        btnGravity.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                testGravity();
+            }
+        });
     }
 
     private String getChineseName(int type) {
@@ -92,7 +102,7 @@ public class SensorActivity extends AppCompatActivity {
             case Sensor.TYPE_TEMPERATURE:
                 return "温度传感器";
             case Sensor.TYPE_GRAVITY:
-                return "重场传感器";
+                return "重力传感器";
             case Sensor.TYPE_LINEAR_ACCELERATION:
                 return "线性加速度传感器";
             case Sensor.TYPE_ROTATION_VECTOR:
@@ -338,6 +348,45 @@ public class SensorActivity extends AppCompatActivity {
         }
     }
 
+    private void testGravity() {
+        if (mSensorManager != null) {
+            unregisterGravityListener();
+
+            mGravityListener = new SensorEventListener() {
+                @Override
+                public void onSensorChanged(SensorEvent event) {
+                    int type = event.sensor.getType();
+
+                    if (type == Sensor.TYPE_GRAVITY) {
+                        // 三个方向的重力加速度拆解
+                        float x = event.values[0];
+                        float y = event.values[1];
+                        float z = event.values[2];
+                        Log.e(TAG, String.format("gravity x: %s, y: %s, z: %s", x, y, z));
+
+                        // 观察重力加速度变化未做取消注册
+                    }
+                }
+
+                @Override
+                public void onAccuracyChanged(Sensor sensor, int accuracy) {
+
+                }
+            };
+
+            Sensor gravitySensor = mSensorManager.getDefaultSensor(Sensor.TYPE_GRAVITY);
+
+            mSensorManager.registerListener(mGravityListener, gravitySensor, SensorManager.SENSOR_DELAY_NORMAL);
+        }
+    }
+
+    private void unregisterGravityListener() {
+        if (mGravityListener != null) {
+            mSensorManager.unregisterListener(mGravityListener);
+            mGravityListener = null;
+        }
+    }
+
     @Override
     protected void onDestroy() {
         super.onDestroy();
@@ -347,5 +396,7 @@ public class SensorActivity extends AppCompatActivity {
         unregisterAccelerometerListener();
 
         unregisterStepCounterListener();
+
+        unregisterGravityListener();
     }
 }

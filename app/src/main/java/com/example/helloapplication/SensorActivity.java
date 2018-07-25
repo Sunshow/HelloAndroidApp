@@ -1,5 +1,6 @@
 package com.example.helloapplication;
 
+import android.content.pm.PackageManager;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -21,6 +22,8 @@ public class SensorActivity extends AppCompatActivity {
     private SensorEventListener mOrientationListener;
 
     private SensorEventListener mAccelerometerListener;
+
+    private SensorEventListener mStepCounterListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,6 +61,14 @@ public class SensorActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 testShake();
+            }
+        });
+
+        Button btnStepCounter = findViewById(R.id.btn_step_counter);
+        btnStepCounter.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                testStepCounter();
             }
         });
     }
@@ -276,6 +287,57 @@ public class SensorActivity extends AppCompatActivity {
         }
     }
 
+    private void testStepCounter() {
+        if (mSensorManager != null
+                && getPackageManager().hasSystemFeature(PackageManager.FEATURE_SENSOR_STEP_COUNTER)
+                && getPackageManager().hasSystemFeature(PackageManager.FEATURE_SENSOR_STEP_DETECTOR)) {
+            // 支持计步器
+            // TYPE_STEP_DETECTOR
+            // 用户每迈出一步，此传感器就会触发一个事件。对于每个用户步伐，此传感器提供一个返回值为 1.0 的事件和一个指示此步伐发生时间的时间戳。
+            // 当用户在行走时，会产生一个加速度上的变化，从而出触发此传感器事件的发生。
+            // 注意此传感器只能检测到单个有效的步伐，获取单个步伐的有效数据，如果需要统计一段时间内的步伐总数，则需要使用下面的TYPE_STEP_COUNTER传感器。
+            // TYPE_STEP_COUNTER
+            // 此传感器会针对检测到的每个步伐触发一个事件，但提供的步数是自设备启动激活该传感器以来累计的总步数，在每次设备重启后会清零，所以务必需要做数据的持久化。
+            // 该传感器返回一个float的值，100步即100.0，以此类推。该传感器也有一个时间戳成员，记录最后一个步伐的发生事件。
+            // 该传感器是需要硬件支持的，并且是非常省电的，如果需要长时间获取步伐总数，就不需要解注册该传感器，
+            // 注册该传感器会一直在后台运行计步。请务必在应用程序中保持注册该传感器，否则该传感器不会被激活从而不会统计总部署。
+
+            // 如何保证开机启动是另外的问题
+
+            unregisterStepCounterListener();
+
+            mStepCounterListener = new SensorEventListener() {
+                @Override
+                public void onSensorChanged(SensorEvent event) {
+                    int type = event.sensor.getType();
+
+                    if (type == Sensor.TYPE_STEP_COUNTER) {
+                        float count = event.values[0];
+                        Log.e(TAG, String.format("step count: %s, timestamp: %s", count, event.timestamp));
+
+                        // 思考, 何时取消注册 listener ?
+                    }
+                }
+
+                @Override
+                public void onAccuracyChanged(Sensor sensor, int accuracy) {
+
+                }
+            };
+
+            Sensor stepCounterSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER);
+
+            mSensorManager.registerListener(mStepCounterListener, stepCounterSensor, SensorManager.SENSOR_DELAY_GAME);
+        }
+    }
+
+    private void unregisterStepCounterListener() {
+        if (mStepCounterListener != null) {
+            mSensorManager.unregisterListener(mStepCounterListener);
+            mStepCounterListener = null;
+        }
+    }
+
     @Override
     protected void onDestroy() {
         super.onDestroy();
@@ -283,5 +345,7 @@ public class SensorActivity extends AppCompatActivity {
         unregisterOrientationListener();
 
         unregisterAccelerometerListener();
+
+        unregisterStepCounterListener();
     }
 }

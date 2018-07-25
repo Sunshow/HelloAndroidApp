@@ -29,6 +29,8 @@ public class SensorActivity extends AppCompatActivity {
 
     private SensorEventListener mProximityListener;
 
+    private SensorEventListener mLightListener;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -89,6 +91,14 @@ public class SensorActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 testProximity();
+            }
+        });
+
+        Button btnLight = findViewById(R.id.btn_light);
+        btnLight.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                testLight();
             }
         });
     }
@@ -432,6 +442,41 @@ public class SensorActivity extends AppCompatActivity {
         }
     }
 
+    private void testLight() {
+        if (mSensorManager != null) {
+            unregisterLightListener();
+
+            mLightListener = new SensorEventListener() {
+                @Override
+                public void onSensorChanged(SensorEvent event) {
+                    int type = event.sensor.getType();
+
+                    if (type == Sensor.TYPE_LIGHT) {
+                        // 1勒克司 = 1流明每平方米
+                        float lux = event.values[0];
+                        Log.e(TAG, String.format("lux: %s, max range: %s", lux, event.sensor.getMaximumRange()));
+                    }
+                }
+
+                @Override
+                public void onAccuracyChanged(Sensor sensor, int accuracy) {
+
+                }
+            };
+
+            Sensor lightSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_LIGHT);
+
+            mSensorManager.registerListener(mLightListener, lightSensor, SensorManager.SENSOR_DELAY_NORMAL);
+        }
+    }
+
+    private void unregisterLightListener() {
+        if (mLightListener != null) {
+            mSensorManager.unregisterListener(mLightListener);
+            mLightListener = null;
+        }
+    }
+
     @Override
     protected void onDestroy() {
         super.onDestroy();
@@ -445,5 +490,7 @@ public class SensorActivity extends AppCompatActivity {
         unregisterGravityListener();
 
         unregisterProximityListener();
+
+        unregisterLightListener();
     }
 }

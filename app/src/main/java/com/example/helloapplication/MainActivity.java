@@ -1,15 +1,20 @@
 package com.example.helloapplication;
 
+import android.Manifest;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
+import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -17,6 +22,11 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+
+import com.amap.api.location.AMapLocation;
+import com.amap.api.location.AMapLocationClient;
+import com.amap.api.location.AMapLocationClientOption;
+import com.amap.api.location.AMapLocationListener;
 
 import java.lang.ref.WeakReference;
 import java.util.concurrent.Executor;
@@ -34,6 +44,8 @@ public class MainActivity extends AppCompatActivity {
 
     private static final int EDIT_OK = 301;
 
+    private static final int AMAP_REQUEST_CODE = 201;
+
     Button button;
 
     EditText text;
@@ -45,6 +57,27 @@ public class MainActivity extends AppCompatActivity {
         public void run() {
             mHandler.sendEmptyMessage(EDIT_OK);
         }
+    };
+
+    //声明AMapLocationClient类对象
+    public AMapLocationClient mLocationClient = null;
+    //声明定位回调监听器
+    public AMapLocationListener mLocationListener = new AMapLocationListener() {
+        @Override
+        public void onLocationChanged(AMapLocation aMapLocation) {
+            Log.e(TAG, String.format("address=%s, longitude=%s, latitude=%s", aMapLocation.getAddress(), aMapLocation.getLongitude(), aMapLocation.getLatitude()));
+        }
+    };
+
+    //声明AMapLocationClientOption对象
+    public AMapLocationClientOption mLocationOption = null;
+
+    private String[] mAMapPermissions = new String[] {
+            Manifest.permission.ACCESS_COARSE_LOCATION,
+            Manifest.permission.ACCESS_FINE_LOCATION,
+            Manifest.permission.WRITE_EXTERNAL_STORAGE,
+            Manifest.permission.READ_EXTERNAL_STORAGE,
+            Manifest.permission.READ_PHONE_STATE
     };
 
     @Override
@@ -91,6 +124,14 @@ public class MainActivity extends AppCompatActivity {
             }
         };
         */
+
+        Button btnTestAMap = findViewById(R.id.btn_test_amap);
+        btnTestAMap.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                testAMap();
+            }
+        });
 
         mHandler = new TextInputCompletedHandler(button);
 
@@ -236,6 +277,58 @@ public class MainActivity extends AppCompatActivity {
             }
         });
         asyncTask.execute("hi");
+    }
+
+    private void testAMap() {
+        boolean allGranted = true;
+
+        for (String permission : mAMapPermissions) {
+            if (ContextCompat.checkSelfPermission(this, permission)
+                    != PackageManager.PERMISSION_GRANTED) {
+                allGranted = false;
+            }
+        }
+
+        if (allGranted) {
+            startLocation();
+        } else {
+            ActivityCompat.requestPermissions(this, mAMapPermissions, AMAP_REQUEST_CODE);
+        }
+    }
+
+    private void startLocation() {
+        //初始化定位
+        mLocationClient = new AMapLocationClient(getApplicationContext());
+        //设置定位回调监听
+        mLocationClient.setLocationListener(mLocationListener);
+
+        //初始化AMapLocationClientOption对象
+        mLocationOption = new AMapLocationClientOption();
+        //设置定位模式为AMapLocationMode.Hight_Accuracy，高精度模式。
+        mLocationOption.setLocationMode(AMapLocationClientOption.AMapLocationMode.Hight_Accuracy);
+        //获取一次定位结果：
+        //该方法默认为false。
+        mLocationOption.setOnceLocation(true);
+        //获取最近3s内精度最高的一次定位结果：
+        //设置setOnceLocationLatest(boolean b)接口为true，启动定位时SDK会返回最近3s内精度最高的一次定位结果。如果设置其为true，setOnceLocation(boolean b)接口也会被设置为true，反之不会，默认为false。
+        mLocationOption.setOnceLocationLatest(true);
+        //设置是否返回地址信息（默认返回地址信息）
+        mLocationOption.setNeedAddress(true);
+        //设置是否允许模拟位置,默认为true，允许模拟位置
+        mLocationOption.setMockEnable(true);
+
+        mLocationClient.setLocationOption(mLocationOption);
+
+        mLocationClient.startLocation();
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == AMAP_REQUEST_CODE) {
+            // 省略掉了对应权限判断和授权结果判断
+            startLocation();
+        }
     }
 
     static class MyAsyncTask extends AsyncTask<String, Integer, String> {

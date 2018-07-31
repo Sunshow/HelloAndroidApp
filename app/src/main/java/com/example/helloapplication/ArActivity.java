@@ -90,14 +90,16 @@ public class ArActivity extends AppCompatActivity {
 
         Log.e(TAG, String.format("AR supported: %s", availability.isSupported()));
 
+        /*
         if (availability.isSupported()) {
-            //mArButton.setVisibility(View.VISIBLE);
-            //mArButton.setEnabled(true);
+            mArButton.setVisibility(View.VISIBLE);
+            mArButton.setEnabled(true);
             // indicator on the button.
         } else { // unsupported or unknown
-            //mArButton.setVisibility(View.INVISIBLE);
-            //mArButton.setEnabled(false);
+            mArButton.setVisibility(View.INVISIBLE);
+            mArButton.setEnabled(false);
         }
+        */
     }
 
     /**

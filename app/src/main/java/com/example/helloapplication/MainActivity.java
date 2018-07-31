@@ -133,6 +133,14 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        Button btnTestAr = findViewById(R.id.btn_test_ar);
+        btnTestAr.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                testAr();
+            }
+        });
+
         mHandler = new TextInputCompletedHandler(button);
 
         text = findViewById(R.id.et_text);
@@ -294,6 +302,10 @@ public class MainActivity extends AppCompatActivity {
         } else {
             ActivityCompat.requestPermissions(this, mAMapPermissions, AMAP_REQUEST_CODE);
         }
+    }
+
+    private void testAr() {
+        startActivity(new Intent(this, ArActivity.class));
     }
 
     private void startLocation() {

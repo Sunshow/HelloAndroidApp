@@ -18,6 +18,7 @@ import com.google.ar.core.HitResult;
 import com.google.ar.core.Plane;
 import com.google.ar.sceneform.AnchorNode;
 import com.google.ar.sceneform.rendering.ModelRenderable;
+import com.google.ar.sceneform.rendering.ViewRenderable;
 import com.google.ar.sceneform.ux.ArFragment;
 import com.google.ar.sceneform.ux.TransformableNode;
 
@@ -30,6 +31,8 @@ public class ArActivity extends AppCompatActivity {
     private ArFragment arFragment;
     private ModelRenderable andyRenderable;
 
+    private ViewRenderable viewRenderable;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -39,6 +42,13 @@ public class ArActivity extends AppCompatActivity {
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             arFragment = (ArFragment) getSupportFragmentManager().findFragmentById(R.id.ux_fragment);
+
+            /*
+            ViewRenderable.builder()
+                    .setView(this, R.layout.solar_controls)
+                    .build()
+                    .thenAccept(renderable -> viewRenderable = renderable);
+                    */
 
             // When you build a Renderable, Sceneform loads its resources in the background while returning
             // a CompletableFuture. Call thenAccept(), handle(), or check isDone() before calling get().
@@ -71,6 +81,20 @@ public class ArActivity extends AppCompatActivity {
                         andy.setParent(anchorNode);
                         andy.setRenderable(andyRenderable);
                         andy.select();
+
+                        /*
+                        if (viewRenderable == null) {
+                            return;
+                        }
+
+                        Node solarControls = new Node();
+                        solarControls.setEnabled(false);
+                        solarControls.setParent(andy);
+                        solarControls.setRenderable(viewRenderable);
+                        solarControls.setLocalPosition(new Vector3(0.0f, 0.25f, 0.0f));
+
+                        andy.setOnTapListener((hitTestResult, insideMotionEvent) -> solarControls.setEnabled(!solarControls.isEnabled()));
+                        */
                     });
         }
     }

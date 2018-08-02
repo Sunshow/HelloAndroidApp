@@ -39,12 +39,9 @@ public class SensorActivity extends AppCompatActivity {
         mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
 
         Button btnGetList = findViewById(R.id.btn_get_list);
-        btnGetList.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                testSensorGetList();
-            }
-        });
+        btnGetList.setOnClickListener(v -> testSensorGetList());
+
+        btnGetList.setOnClickListener(v -> testSensorGetList());
 
         Button btnOrientationStart = findViewById(R.id.btn_orientation_start);
         btnOrientationStart.setOnClickListener(new View.OnClickListener() {

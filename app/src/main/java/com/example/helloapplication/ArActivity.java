@@ -10,6 +10,8 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.MotionEvent;
+import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.ar.core.Anchor;
@@ -17,6 +19,8 @@ import com.google.ar.core.ArCoreApk;
 import com.google.ar.core.HitResult;
 import com.google.ar.core.Plane;
 import com.google.ar.sceneform.AnchorNode;
+import com.google.ar.sceneform.Node;
+import com.google.ar.sceneform.math.Vector3;
 import com.google.ar.sceneform.rendering.ModelRenderable;
 import com.google.ar.sceneform.rendering.ViewRenderable;
 import com.google.ar.sceneform.ux.ArFragment;
@@ -43,12 +47,12 @@ public class ArActivity extends AppCompatActivity {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             arFragment = (ArFragment) getSupportFragmentManager().findFragmentById(R.id.ux_fragment);
 
-            /*
             ViewRenderable.builder()
                     .setView(this, R.layout.solar_controls)
                     .build()
-                    .thenAccept(renderable -> viewRenderable = renderable);
-                    */
+                    .thenAccept(renderable -> {
+                        viewRenderable = renderable;
+                    });
 
             // When you build a Renderable, Sceneform loads its resources in the background while returning
             // a CompletableFuture. Call thenAccept(), handle(), or check isDone() before calling get().
@@ -82,10 +86,14 @@ public class ArActivity extends AppCompatActivity {
                         andy.setRenderable(andyRenderable);
                         andy.select();
 
-                        /*
                         if (viewRenderable == null) {
                             return;
                         }
+
+                        Button button = viewRenderable.getView().findViewById(R.id.button);
+                        TextView textView = viewRenderable.getView().findViewById(R.id.orbitHeader);
+
+                        button.setOnClickListener(v -> textView.setText("AR Button Clicked"));
 
                         Node solarControls = new Node();
                         solarControls.setEnabled(false);
@@ -93,8 +101,7 @@ public class ArActivity extends AppCompatActivity {
                         solarControls.setRenderable(viewRenderable);
                         solarControls.setLocalPosition(new Vector3(0.0f, 0.25f, 0.0f));
 
-                        andy.setOnTapListener((hitTestResult, insideMotionEvent) -> solarControls.setEnabled(!solarControls.isEnabled()));
-                        */
+                        andy.setOnTapListener((hitTestResult, insideMotionEvent) ->  solarControls.setEnabled(!solarControls.isEnabled()));
                     });
         }
     }
@@ -104,12 +111,7 @@ public class ArActivity extends AppCompatActivity {
         ArCoreApk.Availability availability = ArCoreApk.getInstance().checkAvailability(this);
         if (availability.isTransient()) {
             // re-query at 5Hz while we check compatibility.
-            new Handler().postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    maybeEnableArButton();
-                }
-            }, 200);
+            new Handler().postDelayed(this::maybeEnableArButton, 200);
         }
 
         Log.e(TAG, String.format("AR supported: %s", availability.isSupported()));

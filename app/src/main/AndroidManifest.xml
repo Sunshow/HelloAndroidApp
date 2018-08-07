@@ -48,6 +48,7 @@
         <activity android:name="com.example.helloapplication.SecondaryActivity" />
         <activity android:name=".SensorActivity" />
         <activity android:name=".ArActivity" />
+        <activity android:name=".SpeechActivity" />
 
         <service android:name="com.example.helloapplication.FirstService" />
         <receiver android:name=".OrderedBroadcastReceiver">

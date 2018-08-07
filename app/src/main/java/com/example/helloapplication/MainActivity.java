@@ -141,6 +141,12 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        Button btnTestSpeech = findViewById(R.id.btn_test_speech);
+        btnTestSpeech.setOnClickListener(v -> {
+            startActivity(new Intent(MainActivity.this, SpeechActivity.class));
+        });
+
+
         mHandler = new TextInputCompletedHandler(button);
 
         text = findViewById(R.id.et_text);

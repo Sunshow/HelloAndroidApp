@@ -10,8 +10,6 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.widget.Button;
-import android.widget.SeekBar;
-import android.widget.TextView;
 
 import com.iflytek.cloud.ErrorCode;
 import com.iflytek.cloud.InitListener;
@@ -21,6 +19,8 @@ import com.iflytek.cloud.SpeechConstant;
 import com.iflytek.cloud.SpeechError;
 import com.iflytek.cloud.SpeechEvent;
 import com.iflytek.cloud.SpeechRecognizer;
+import com.iflytek.cloud.SpeechSynthesizer;
+import com.iflytek.cloud.SynthesizerListener;
 import com.iflytek.cloud.VoiceWakeuper;
 import com.iflytek.cloud.WakeuperListener;
 import com.iflytek.cloud.WakeuperResult;
@@ -49,18 +49,22 @@ public class SpeechActivity extends AppCompatActivity {
 
     // 语音唤醒对象
     private VoiceWakeuper mIvw;
-    // 唤醒结果内容
-    private String resultString;
 
     // 设置门限值 ： 门限值越低越容易被唤醒
-    private TextView tvThresh;
-    private SeekBar seekbarThresh;
-    private final static int MAX = 3000;
-    private final static int MIN = 0;
     private int curThresh = 1450;
-    private String threshStr = "门限值：";
     private String keep_alive = "1";
     private String ivwNetMode = "0";
+
+    // 语音合成对象
+    private SpeechSynthesizer mTts;
+
+    // 默认云端发音人
+    public static String voicerCloud = "xiaoyan";
+    // 默认本地发音人
+    public static String voicerLocal = "xiaoyan";
+
+    // 引擎类型
+    private String mEngineType = SpeechConstant.TYPE_CLOUD;
 
     /**
      * 初始化监听器。
@@ -184,7 +188,7 @@ public class SpeechActivity extends AppCompatActivity {
             // 设置闭环优化网络模式
             mIvw.setParameter(SpeechConstant.IVW_NET_MODE, ivwNetMode);
             // 设置唤醒资源路径
-            mIvw.setParameter(SpeechConstant.IVW_RES_PATH, getResource());
+            mIvw.setParameter(SpeechConstant.IVW_RES_PATH, getIvwResource());
             // 设置唤醒录音保存路径，保存最近一分钟的音频
             mIvw.setParameter( SpeechConstant.IVW_AUDIO_PATH, Environment.getExternalStorageDirectory().getPath()+"/msc/ivw.wav" );
             mIvw.setParameter( SpeechConstant.AUDIO_FORMAT, "wav" );
@@ -195,6 +199,98 @@ public class SpeechActivity extends AppCompatActivity {
             mIvw.startListening(mWakeuperListener);
         }
     };
+
+    /**
+     * 合成回调监听。
+     */
+    private SynthesizerListener mTtsListener = new SynthesizerListener() {
+
+        @Override
+        public void onSpeakBegin() {
+            Log.e(TAG, "开始播放");
+        }
+
+        @Override
+        public void onSpeakPaused() {
+            Log.e(TAG, "暂停播放");
+        }
+
+        @Override
+        public void onSpeakResumed() {
+            Log.e(TAG, "继续播放");
+        }
+
+        @Override
+        public void onBufferProgress(int percent, int beginPos, int endPos,
+                                     String info) {
+            // 合成进度
+            Log.e(TAG, String.format("合成进度: %s", percent));
+        }
+
+        @Override
+        public void onSpeakProgress(int percent, int beginPos, int endPos) {
+            // 播放进度
+            Log.e(TAG, String.format("播放进度: %s", percent));
+        }
+
+        @Override
+        public void onCompleted(SpeechError error) {
+            if (error == null) {
+                Log.e(TAG, "播放完成");
+            } else {
+                Log.e(TAG, error.getPlainDescription(true));
+            }
+        }
+
+        @Override
+        public void onEvent(int eventType, int arg1, int arg2, Bundle obj) {
+            // 以下代码用于获取与云端的会话id，当业务出错时将会话id提供给技术支持人员，可用于查询会话日志，定位出错原因
+            // 若使用本地能力，会话id为null
+            //	if (SpeechEvent.EVENT_SESSION_ID == eventType) {
+            //		String sid = obj.getString(SpeechEvent.KEY_EVENT_SESSION_ID);
+            //		Log.d(TAG, "session id =" + sid);
+            //	}
+        }
+    };
+
+    /**
+     * 参数设置
+     * @return
+     */
+    private void setTtsParam(){
+        // 清空参数
+        mTts.setParameter(SpeechConstant.PARAMS, null);
+        //设置合成
+        if (mEngineType.equals(SpeechConstant.TYPE_CLOUD)) {
+            //设置使用云端引擎
+            mTts.setParameter(SpeechConstant.ENGINE_TYPE, SpeechConstant.TYPE_CLOUD);
+            //设置发音人
+            mTts.setParameter(SpeechConstant.VOICE_NAME, voicerCloud);
+        } else {
+            //设置使用本地引擎
+            mTts.setParameter(SpeechConstant.ENGINE_TYPE, SpeechConstant.TYPE_LOCAL);
+            //设置发音人资源路径
+            mTts.setParameter(ResourceUtil.TTS_RES_PATH, getTtsResourcePath());
+            //设置发音人
+            mTts.setParameter(SpeechConstant.VOICE_NAME, voicerLocal);
+        }
+        //设置合成语速
+        mTts.setParameter(SpeechConstant.SPEED, "50");
+        //设置合成音调
+        mTts.setParameter(SpeechConstant.PITCH, "50");
+        //设置合成音量
+        mTts.setParameter(SpeechConstant.VOLUME, "50");
+        //设置播放器音频流类型
+        mTts.setParameter(SpeechConstant.STREAM_TYPE, "3");
+
+        // 设置播放合成音频打断音乐播放，默认为true
+        mTts.setParameter(SpeechConstant.KEY_REQUEST_FOCUS, "true");
+
+        // 设置音频保存路径，保存音频格式支持pcm、wav，设置路径为sd卡请注意WRITE_EXTERNAL_STORAGE权限
+        // 注：AUDIO_FORMAT参数语记需要更新版本才能生效
+        mTts.setParameter(SpeechConstant.AUDIO_FORMAT, "wav");
+        mTts.setParameter(SpeechConstant.TTS_AUDIO_PATH, Environment.getExternalStorageDirectory() + "/msc/tts.wav");
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -213,6 +309,27 @@ public class SpeechActivity extends AppCompatActivity {
 
         Button btn_ivw = findViewById(R.id.btn_test_ivw);
         btn_ivw.setOnClickListener(v -> requestPermission(mWakeuperAction));
+
+        // 初始化合成对象
+        mTts = SpeechSynthesizer.createSynthesizer(this, mInitListener);
+
+        Button btn_tts = findViewById(R.id.btn_test_tts);
+        btn_tts.setOnClickListener(v -> {
+            String text = "这是要合成的文本内容";
+            // 设置参数
+            setTtsParam();
+            int code = mTts.startSpeaking(text, mTtsListener);
+//			/**
+//			 * 只保存音频不进行播放接口,调用此接口请注释startSpeaking接口
+//			 * text:要合成的文本，uri:需要保存的音频全路径，listener:回调接口
+//			*/
+//			String path = Environment.getExternalStorageDirectory()+"/tts.pcm";
+//			int code = mTts.synthesizeToUri(text, path, mTtsListener);
+
+            if (code != ErrorCode.SUCCESS) {
+                Log.e(TAG, String.format("语音合成失败,错误码: %s", code));
+            }
+        });
     }
 
     private void requestPermission(Action action) {
@@ -241,10 +358,21 @@ public class SpeechActivity extends AppCompatActivity {
         }
     }
 
-    private String getResource() {
+    private String getIvwResource() {
         final String resPath = ResourceUtil.generateResourcePath(SpeechActivity.this, ResourceUtil.RESOURCE_TYPE.assets, "ivw/5b6908cc.jet");
         Log.e(TAG, String.format("resPath: %s", resPath));
         return resPath;
+    }
+
+    //获取发音人资源路径
+    private String getTtsResourcePath() {
+        StringBuffer tempBuffer = new StringBuffer();
+        //合成通用资源
+        tempBuffer.append(ResourceUtil.generateResourcePath(this, ResourceUtil.RESOURCE_TYPE.assets, "tts/common.jet"));
+        tempBuffer.append(";");
+        //发音人资源
+        tempBuffer.append(ResourceUtil.generateResourcePath(this, ResourceUtil.RESOURCE_TYPE.assets, "tts/" + SpeechActivity.voicerLocal + ".jet"));
+        return tempBuffer.toString();
     }
 
     @Override
@@ -262,6 +390,12 @@ public class SpeechActivity extends AppCompatActivity {
                 mIvw.cancel();
             }
             mIvw.destroy();
+        }
+        if (mTts != null) {
+            if (mTts.isSpeaking()) {
+                mTts.stopSpeaking();
+            }
+            mTts.destroy();
         }
     }
 }

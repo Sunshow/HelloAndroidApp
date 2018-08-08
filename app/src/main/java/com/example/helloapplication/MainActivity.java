@@ -142,9 +142,9 @@ public class MainActivity extends AppCompatActivity {
         });
 
         Button btnTestSpeech = findViewById(R.id.btn_test_speech);
-        btnTestSpeech.setOnClickListener(v -> {
-            startActivity(new Intent(MainActivity.this, SpeechActivity.class));
-        });
+        btnTestSpeech.setOnClickListener(v -> startActivity(new Intent(MainActivity.this, SpeechActivity.class)));
+
+        findViewById(R.id.btn_test_amap_3dmap).setOnClickListener(v -> startActivity(new Intent(MainActivity.this, AMapActivity.class)));
 
 
         mHandler = new TextInputCompletedHandler(button);

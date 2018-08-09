@@ -41,6 +41,7 @@ public class SpeechActivity extends AppCompatActivity {
             Manifest.permission.READ_EXTERNAL_STORAGE
     };
 
+    @FunctionalInterface
     private interface Action {
 
         void execute();
@@ -59,7 +60,7 @@ public class SpeechActivity extends AppCompatActivity {
     private SpeechSynthesizer mTts;
 
     // 默认云端发音人
-    public static String voicerCloud = "xiaoyan";
+    public static String voicerCloud = "xiaofeng";
     // 默认本地发音人
     public static String voicerLocal = "xiaoyan";
 
@@ -355,6 +356,8 @@ public class SpeechActivity extends AppCompatActivity {
         if (requestCode == PERMISSION_REQUEST_CODE) {
             // 省略掉了对应权限判断和授权结果判断
             mRecognizerAction.execute();
+        } else if (requestCode == 1) {
+            // ....
         }
     }
 
